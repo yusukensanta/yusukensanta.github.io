@@ -1,0 +1,17 @@
+{
+  "title": "demo-cli",
+  "slug": "demo-cli",
+  "description": "A sample CLI tool for demonstration purposes.",
+  "repo": "yusukensanta/demo-cli",
+  "stars": 12,
+  "forks": 2,
+  "homepage": null,
+  "tech_stack": ["Go", "Cobra"],
+  "last_updated": "2026-04-10T08:00:00Z",
+  "sections": {
+    "readme": "# demo-cli\n\nA fast CLI tool built with Go and Cobra.\n\n![Build](https://img.shields.io/badge/build-passing-green)\n",
+    "installation": "## Installation\n\n```bash\ngo install github.com/yusukensanta/demo-cli@latest\n```\n\nOr download a binary from the [releases page](https://github.com/yusukensanta/demo-cli/releases).\n",
+    "contributing": "## Contributing\n\n1. Fork the repo\n2. Create a feature branch: `git checkout -b feat/my-feature`\n3. Commit your changes\n4. Open a pull request\n\nPlease run `go test ./...` before opening a PR.\n",
+    "changelog": "## v0.2.0 — 2026-04-10\n\n- Add `--verbose` flag\n- Fix output encoding on Windows\n\n## v0.1.0 — 2026-03-01\n\n- Initial release\n"
+  }
+}
