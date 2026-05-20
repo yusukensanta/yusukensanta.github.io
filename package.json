@@ -12,7 +12,7 @@
     "sync": "node scripts/sync-projects.mjs"
   },
   "dependencies": {
-    "astro": "^5.7.0",
+    "astro": "^6.0.0",
     "marked": "^15.0.0"
   },
   "devDependencies": {
