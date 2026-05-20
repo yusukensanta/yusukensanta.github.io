@@ -1,0 +1,47 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import type { Project } from '../content.config';
+
+const entries = await getCollection('projects');
+const projects = entries
+  .map(e => e.data as Project)
+  .sort((a, b) => b.stars - a.stars);
+---
+
+<BaseLayout title="yusukensanta — Open Source Projects">
+  <section class="hero">
+    <h1>Open Source Projects</h1>
+    <p class="hero-sub">Documentation auto-synced from GitHub</p>
+  </section>
+
+  {projects.length === 0 ? (
+    <p class="empty-state">No projects synced yet. Run <code>pnpm sync</code> or <code>pnpm dev:mock</code> locally.</p>
+  ) : (
+    <section class="project-grid" aria-label="Projects">
+      {projects.map(project => <ProjectCard project={project} />)}
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 2rem;
+  }
+  .hero h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+  .hero-sub { margin: 0; color: var(--color-text-muted); }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .empty-state {
+    color: var(--color-text-muted);
+    padding: 2rem 0;
+  }
+</style>
