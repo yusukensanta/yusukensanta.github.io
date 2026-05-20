@@ -10,6 +10,8 @@ const projectSchema = z.object({
   stars: z.number().default(0),
   forks: z.number().default(0),
   homepage: z.string().nullable().optional(),
+  logo: z.string().nullable().optional(),
+  logo_dark: z.string().nullable().optional(),
   tech_stack: z.array(z.string()).default([]),
   last_updated: z.string(),
   sections: z.object({

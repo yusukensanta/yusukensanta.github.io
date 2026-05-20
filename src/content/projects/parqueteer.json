@@ -6,6 +6,8 @@
   "stars": 0,
   "forks": 0,
   "homepage": null,
+  "logo": "https://raw.githubusercontent.com/yusukensanta/parqueteer/main/assets/logo/parqueteer-wordmark.svg",
+  "logo_dark": "https://raw.githubusercontent.com/yusukensanta/parqueteer/main/assets/logo/parqueteer-wordmark-dark.svg",
   "tech_stack": [
     "Scala",
     "Apache Parquet",

@@ -12,6 +12,14 @@ const updatedDate = new Date(project.last_updated).toLocaleDateString('en-US', {
 
 <header class="project-header">
   <div class="breadcrumb"><a href="/">← Home</a></div>
+  {project.logo && (
+    <picture class="project-logo">
+      {project.logo_dark && (
+        <source media="(prefers-color-scheme: dark)" srcset={project.logo_dark} />
+      )}
+      <img src={project.logo} alt={`${project.title} logo`} height="56" />
+    </picture>
+  )}
   <h1>{project.title}</h1>
   {project.description && <p class="project-desc">{project.description}</p>}
   <div class="project-meta">
@@ -38,6 +46,8 @@ const updatedDate = new Date(project.last_updated).toLocaleDateString('en-US', {
     border-bottom: 1px solid var(--color-border);
   }
   .breadcrumb { font-size: 0.875rem; margin-bottom: 1rem; color: var(--color-text-muted); }
+  .project-logo { display: block; margin-bottom: 1rem; }
+  .project-logo img { max-width: 280px; height: auto; }
   .project-header h1 { margin: 0 0 0.5rem; font-size: 2rem; }
   .project-desc { margin: 0 0 0.75rem; color: var(--color-text-muted); font-size: 1rem; }
   .project-meta {
