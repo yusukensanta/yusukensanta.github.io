@@ -1,0 +1,80 @@
+---
+interface Tab {
+  id: string;
+  label: string;
+}
+interface Props {
+  tabs: Tab[];
+}
+const { tabs } = Astro.props;
+---
+
+<nav class="tab-nav" role="tablist">
+  {tabs.map((tab, i) => (
+    <button
+      class={`tab-btn${i === 0 ? ' active' : ''}`}
+      role="tab"
+      aria-selected={i === 0 ? 'true' : 'false'}
+      aria-controls={tab.id}
+      data-tab={tab.id}
+    >
+      {tab.label}
+    </button>
+  ))}
+</nav>
+
+<script>
+  function initTabs() {
+    const navs = document.querySelectorAll<HTMLElement>('.tab-nav');
+    navs.forEach(nav => {
+      const buttons = nav.querySelectorAll<HTMLButtonElement>('.tab-btn');
+
+      function showTab(tabId: string) {
+        buttons.forEach(btn => {
+          const active = btn.dataset.tab === tabId;
+          btn.classList.toggle('active', active);
+          btn.setAttribute('aria-selected', String(active));
+        });
+        document.querySelectorAll<HTMLElement>('.tab-panel').forEach(panel => {
+          panel.hidden = panel.id !== tabId;
+        });
+      }
+
+      if (buttons.length > 0) {
+        showTab(buttons[0].dataset.tab ?? '');
+      }
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => showTab(btn.dataset.tab ?? ''));
+      });
+    });
+  }
+
+  initTabs();
+</script>
+
+<style>
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--color-border);
+    margin-bottom: 1.5rem;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn:hover { color: var(--color-text); }
+  .tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+  }
+</style>
