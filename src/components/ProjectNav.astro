@@ -1,0 +1,55 @@
+---
+interface Props {
+  slug: string;
+  current: 'overview' | 'installation' | 'contribution';
+  hasInstallation: boolean;
+  hasContribution: boolean;
+}
+const { slug, current, hasInstallation, hasContribution } = Astro.props;
+---
+
+<nav class="project-subnav" aria-label="Project sections">
+  <a href={`/projects/${slug}/`} class:list={['subnav-link', { active: current === 'overview' }]}>
+    Overview
+  </a>
+  {hasInstallation && (
+    <a
+      href={`/projects/${slug}/installation/`}
+      class:list={['subnav-link', { active: current === 'installation' }]}
+    >
+      Installation
+    </a>
+  )}
+  {hasContribution && (
+    <a
+      href={`/projects/${slug}/contribution/`}
+      class:list={['subnav-link', { active: current === 'contribution' }]}
+    >
+      Contributing
+    </a>
+  )}
+</nav>
+
+<style>
+  .project-subnav {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--color-border);
+    margin: 0 0 2rem;
+  }
+  .subnav-link {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .subnav-link:hover { color: var(--color-text); text-decoration: none; }
+  .subnav-link.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+  }
+</style>

@@ -1,0 +1,58 @@
+---
+import type { Project } from '../content.config';
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const updatedDate = new Date(project.last_updated).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+
+<header class="project-header">
+  <div class="breadcrumb"><a href="/">← Home</a></div>
+  <h1>{project.title}</h1>
+  {project.description && <p class="project-desc">{project.description}</p>}
+  <div class="project-meta">
+    {project.stars > 0 && <span>★ {project.stars}</span>}
+    {project.forks > 0 && <span>{project.forks} forks</span>}
+    <span>Updated {updatedDate}</span>
+  </div>
+  {project.tech_stack.length > 0 && (
+    <ul class="tech-list" aria-label="Tech stack">
+      {project.tech_stack.map(t => <li class="tech-badge">{t}</li>)}
+    </ul>
+  )}
+  <div class="project-links">
+    <a href={`https://github.com/${project.repo}`} target="_blank" rel="noopener">GitHub ↗</a>
+    {project.homepage && (
+      <a href={project.homepage} target="_blank" rel="noopener">Live Demo ↗</a>
+    )}
+  </div>
+</header>
+
+<style>
+  .project-header {
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .breadcrumb { font-size: 0.875rem; margin-bottom: 1rem; color: var(--color-text-muted); }
+  .project-header h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+  .project-desc { margin: 0 0 0.75rem; color: var(--color-text-muted); font-size: 1rem; }
+  .project-meta {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-size: 0.875rem; color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .tech-list {
+    list-style: none; padding: 0; margin: 0 0 0.75rem;
+    display: flex; flex-wrap: wrap; gap: 0.375rem;
+  }
+  .tech-badge {
+    background: var(--color-badge-bg); color: var(--color-badge-text);
+    border-radius: 4px; padding: 0.15em 0.5em;
+    font-size: 0.8rem; font-weight: 500;
+  }
+  .project-links { display: flex; gap: 1rem; font-size: 0.9rem; }
+</style>

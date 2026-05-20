@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProjectHeader from '../../../components/ProjectHeader.astro';
+import ProjectNav from '../../../components/ProjectNav.astro';
+import type { Project } from '../../../content.config';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('projects');
+  return entries
+    .filter(e => (e.data as Project).sections.installation?.trim())
+    .map(entry => ({
+      params: { slug: entry.id },
+      props: { project: entry.data as Project },
+    }));
+}
+
+const { project } = Astro.props;
+const rendered = marked.parse(project.sections.installation) as string;
+---
+
+<BaseLayout
+  title={`${project.title} — Installation — yusukensanta`}
+  description={`How to install ${project.title}`}
+>
+  <ProjectHeader project={project} />
+  <ProjectNav
+    slug={project.slug}
+    current="installation"
+    hasInstallation={true}
+    hasContribution={!!project.sections.contributing?.trim()}
+  />
+  <section class="prose" set:html={rendered} />
+</BaseLayout>

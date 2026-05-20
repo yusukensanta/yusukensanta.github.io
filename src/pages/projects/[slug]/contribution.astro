@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProjectHeader from '../../../components/ProjectHeader.astro';
+import ProjectNav from '../../../components/ProjectNav.astro';
+import type { Project } from '../../../content.config';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('projects');
+  return entries
+    .filter(e => (e.data as Project).sections.contributing?.trim())
+    .map(entry => ({
+      params: { slug: entry.id },
+      props: { project: entry.data as Project },
+    }));
+}
+
+const { project } = Astro.props;
+const rendered = marked.parse(project.sections.contributing) as string;
+---
+
+<BaseLayout
+  title={`${project.title} — Contributing — yusukensanta`}
+  description={`How to contribute to ${project.title}`}
+>
+  <ProjectHeader project={project} />
+  <ProjectNav
+    slug={project.slug}
+    current="contribution"
+    hasInstallation={!!project.sections.installation?.trim()}
+    hasContribution={true}
+  />
+  <section class="prose" set:html={rendered} />
+</BaseLayout>

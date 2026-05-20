@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
 import type { Project } from '../content.config';
 
 const entries = await getCollection('projects');
@@ -10,38 +9,161 @@ const projects = entries
   .sort((a, b) => b.stars - a.stars);
 ---
 
-<BaseLayout title="yusukensanta — Open Source Projects">
-  <section class="hero">
-    <h1>Open Source Projects</h1>
-    <p class="hero-sub">Documentation auto-synced from GitHub</p>
+<BaseLayout title="yusukensanta">
+  <section class="profile">
+    <img
+      class="avatar"
+      src="https://github.com/yusukensanta.png"
+      alt="yusukensanta avatar"
+      width="80"
+      height="80"
+      loading="eager"
+    />
+    <div class="profile-body">
+      <h1>yusukensanta</h1>
+      <p class="bio">Software engineer. Building open source tools.</p>
+      <nav class="social-links" aria-label="Social links">
+        <a href="https://github.com/yusukensanta" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
   </section>
 
-  {projects.length === 0 ? (
-    <p class="empty-state">No projects synced yet. Run <code>pnpm sync</code> or <code>pnpm dev:mock</code> locally.</p>
-  ) : (
-    <section class="project-grid" aria-label="Projects">
-      {projects.map(project => <ProjectCard project={project} />)}
-    </section>
-  )}
+  <section class="projects-section" aria-labelledby="projects-heading">
+    <h2 id="projects-heading">Projects</h2>
+
+    {projects.length === 0 ? (
+      <p class="empty">
+        No projects synced yet — run <code>pnpm sync</code> or <code>pnpm dev:mock</code>.
+      </p>
+    ) : (
+      <ul class="project-list" role="list">
+        {projects.map(p => (
+          <li class="project-row">
+            <div class="row-top">
+              <a class="project-name" href={`/projects/${p.slug}/`}>{p.title}</a>
+              <div class="row-chips">
+                {p.stars > 0 && <span class="chip">★ {p.stars}</span>}
+                {p.forks > 0 && <span class="chip">{p.forks} forks</span>}
+              </div>
+            </div>
+
+            {p.description && <p class="row-desc">{p.description}</p>}
+
+            <div class="row-bottom">
+              {p.tech_stack.length > 0 && (
+                <ul class="tech-list" aria-label="Tech stack">
+                  {p.tech_stack.map(t => <li class="tech-badge">{t}</li>)}
+                </ul>
+              )}
+              <nav class="row-links" aria-label={`${p.title} links`}>
+                <a href={`/projects/${p.slug}/`}>Overview</a>
+                {p.sections.installation?.trim() && (
+                  <a href={`/projects/${p.slug}/installation/`}>Install</a>
+                )}
+                {p.sections.contributing?.trim() && (
+                  <a href={`/projects/${p.slug}/contribution/`}>Contribute</a>
+                )}
+                <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener">GitHub ↗</a>
+                {p.homepage && (
+                  <a href={p.homepage} target="_blank" rel="noopener">Demo ↗</a>
+                )}
+              </nav>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
 </BaseLayout>
 
 <style>
-  .hero {
-    padding: 3rem 0 2rem;
+  /* Profile intro */
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2.5rem 0 2rem;
     border-bottom: 1px solid var(--color-border);
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
-  .hero h1 { margin: 0 0 0.5rem; font-size: 2rem; }
-  .hero-sub { margin: 0; color: var(--color-text-muted); }
-
-  .project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.25rem;
+  .avatar {
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid var(--color-border);
   }
+  .profile-body h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
+  .bio { margin: 0 0 0.75rem; color: var(--color-text-muted); }
+  .social-links { display: flex; gap: 1rem; font-size: 0.9rem; }
 
-  .empty-state {
+  /* Projects section */
+  .projects-section h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--color-text-muted);
-    padding: 2rem 0;
+    margin: 0 0 1.25rem;
+  }
+  .project-list { list-style: none; padding: 0; margin: 0; }
+
+  .project-row {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .project-row:last-child { border-bottom: none; }
+
+  .row-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .project-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .project-name:hover { color: var(--color-primary); }
+
+  .row-chips { display: flex; gap: 0.5rem; }
+  .chip {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .row-desc { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
+
+  .row-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tech-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-wrap: wrap; gap: 0.375rem;
+  }
+  .tech-badge {
+    background: var(--color-badge-bg); color: var(--color-badge-text);
+    border-radius: 4px; padding: 0.15em 0.5em;
+    font-size: 0.75rem; font-weight: 500;
+  }
+  .row-links {
+    display: flex; gap: 0.875rem; font-size: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .empty { color: var(--color-text-muted); padding: 2rem 0; }
+
+  @media (max-width: 480px) {
+    .profile { flex-direction: column; align-items: flex-start; }
+    .row-bottom { flex-direction: column; align-items: flex-start; }
   }
 </style>
