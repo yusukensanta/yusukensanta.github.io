@@ -1,0 +1,14 @@
+# Build output
+dist/
+.astro/
+
+# Generated content (produced by sync script at CI time)
+src/content/projects/*.json
+
+# Node
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.local

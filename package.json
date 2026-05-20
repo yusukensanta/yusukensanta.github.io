@@ -1,0 +1,25 @@
+{
+  "name": "yusukensanta-github-io",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "dev:mock": "cp -r src/content/projects.sample/. src/content/projects/ && astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "sync": "node scripts/sync-projects.mjs"
+  },
+  "dependencies": {
+    "astro": "^5.7.0",
+    "marked": "^15.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@octokit/rest": "^21.1.1",
+    "js-yaml": "^4.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0"
+  }
+}
