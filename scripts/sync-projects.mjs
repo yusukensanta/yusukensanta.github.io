@@ -89,6 +89,7 @@ async function fetchPortfolioConfig(octokit, owner, repo) {
       repo,
       path: '.github/portfolio.yml',
     });
+    if (data.encoding !== 'base64') return null;
     const content = Buffer.from(data.content, 'base64').toString('utf-8');
     return yaml.load(content) ?? {};
   } catch (err) {

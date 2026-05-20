@@ -12,6 +12,7 @@ const { tabs } = Astro.props;
 <nav class="tab-nav" role="tablist">
   {tabs.map((tab, i) => (
     <button
+      id={`tab-${tab.id}`}
       class={`tab-btn${i === 0 ? ' active' : ''}`}
       role="tab"
       aria-selected={i === 0 ? 'true' : 'false'}

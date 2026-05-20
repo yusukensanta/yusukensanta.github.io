@@ -20,7 +20,7 @@ export function hasBadge(readme) {
  */
 export function formatBadge(username, slug) {
   const url = `https://${username}.github.io/projects/${slug}/`;
-  const imgUrl = `https://img.shields.io/badge/docs-${username}.github.io-blue?style=flat%E2%80%93square`;
+  const imgUrl = `https://img.shields.io/badge/docs-${username}.github.io-blue?style=flat-square`;
   const badge = `[![Portfolio Docs](${imgUrl})](${url})`;
   return `${MARKER}\n${badge}\n${MARKER}`;
 }

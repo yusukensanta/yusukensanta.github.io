@@ -74,7 +74,7 @@ const updatedDate = new Date(project.last_updated).toLocaleDateString('en-US', {
       id={s.id}
       class="tab-panel prose"
       role="tabpanel"
-      aria-labelledby={s.id}
+      aria-labelledby={`tab-${s.id}`}
       hidden={tabs.length > 1 && s.id !== tabs[0].id}
       set:html={rendered[s.id]}
     />
