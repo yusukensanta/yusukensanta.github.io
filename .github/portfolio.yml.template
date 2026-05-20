@@ -1,0 +1,20 @@
+# Portfolio opt-in configuration for yusukensanta.github.io
+# Copy this file to .github/portfolio.yml in your repository.
+
+# Set to false to temporarily remove from the portfolio without deleting this file.
+enabled: true
+
+# Override the display title (defaults to repository name)
+# title: "My Awesome Project"
+
+# Override the description (defaults to GitHub repository description)
+# description: "A short description shown on the index and project pages."
+
+# Link to a live demo or production deployment (optional)
+# homepage: "https://example.com"
+
+# Tech stack tags shown on the project card and detail page (optional)
+# tech_stack:
+#   - Python
+#   - FastAPI
+#   - PostgreSQL
