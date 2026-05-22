@@ -60,7 +60,43 @@ async function main() {
   console.log(`\nDone. Synced ${synced.length} project(s): ${synced.join(', ') || '(none)'}`);
 }
 
+function rewriteImageUrls(content, owner, repo, branch = 'main') {
+  if (!content) return content;
+  const base = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
+  return content
+    .replace(/src="(?!https?:\/\/)([^"]+)"/g, (_, p) => `src="${base}${p}"`)
+    .replace(/srcset="(?!https?:\/\/)([^"]+)"/g, (_, p) => `srcset="${base}${p}"`);
+}
+
+function extractLogo(content) {
+  if (!content) return { logo: null, logo_dark: null };
+  const pictureMatch = content.match(/<picture[\s\S]*?<\/picture>/i);
+  if (pictureMatch) {
+    const block = pictureMatch[0];
+    const darkMatch = block.match(/srcset="([^"]+)"/);
+    const imgMatch = block.match(/src="([^"]+)"/);
+    return {
+      logo: imgMatch?.[1] ?? null,
+      logo_dark: darkMatch?.[1] ?? null,
+    };
+  }
+  const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
+  return { logo: imgMatch?.[1] ?? null, logo_dark: null };
+}
+
+// Remove <p> blocks that contain a <picture> element (logo).
+// Keeps the prose clean when logo is already displayed in ProjectHeader.
+function stripLogoBlock(content) {
+  if (!content) return content;
+  return content
+    .replace(/<p[^>]*>[\s\S]*?<picture[\s\S]*?<\/picture>[\s\S]*?<\/p>\s*/gi, '')
+    .trimStart();
+}
+
 function buildProjectData(repo, config, readme, contributing, changelog) {
+  const rewrittenReadme = rewriteImageUrls(readme, USERNAME, repo.name);
+  const { logo, logo_dark } = extractLogo(rewrittenReadme);
+
   return {
     title: config.title ?? repo.name,
     slug: repo.name,
@@ -69,12 +105,14 @@ function buildProjectData(repo, config, readme, contributing, changelog) {
     stars: repo.stargazers_count ?? 0,
     forks: repo.forks_count ?? 0,
     homepage: config.homepage ?? repo.homepage ?? null,
+    logo: config.logo ?? logo,
+    logo_dark: config.logo_dark ?? logo_dark,
     tech_stack: config.tech_stack ?? [],
     last_updated: repo.pushed_at ?? new Date().toISOString(),
     sections: {
-      readme: readme ? extractOverview(readme) : '',
-      installation: readme ? extractInstallation(readme) : '',
-      contributing: contributing ?? '',
+      readme: rewrittenReadme ? stripLogoBlock(extractOverview(rewrittenReadme)) : '',
+      installation: rewrittenReadme ? extractInstallation(rewrittenReadme) : '',
+      contributing: rewriteImageUrls(contributing, USERNAME, repo.name) ?? '',
       changelog: changelog
         ? findSection(extractSections(changelog), ['unreleased', 'changelog', '__preamble__']) || changelog
         : '',
