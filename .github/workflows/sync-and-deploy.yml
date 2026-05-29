@@ -6,6 +6,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:            # manual trigger
+  repository_dispatch:
+    types: [parqueteer-release]
 
 permissions:
   contents: write
