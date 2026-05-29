@@ -23,6 +23,7 @@ const updatedDate = new Date(project.last_updated).toLocaleDateString('en-US', {
   <h1>{project.title}</h1>
   {project.description && <p class="project-desc">{project.description}</p>}
   <div class="project-meta">
+    {project.version && <span>{project.version}</span>}
     {project.stars > 0 && <span>★ {project.stars}</span>}
     {project.forks > 0 && <span>{project.forks} forks</span>}
     <span>Updated {updatedDate}</span>

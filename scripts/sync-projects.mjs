@@ -40,8 +40,9 @@ async function main() {
     const readme = await fetchFile(octokit, USERNAME, repo.name, 'README.md');
     const contributing = await fetchFile(octokit, USERNAME, repo.name, 'CONTRIBUTING.md');
     const changelog = await fetchFile(octokit, USERNAME, repo.name, 'CHANGELOG.md');
+    const version = await fetchLatestRelease(octokit, USERNAME, repo.name);
 
-    const projectData = buildProjectData(repo, config, readme, contributing, changelog);
+    const projectData = buildProjectData(repo, config, readme, contributing, changelog, version);
 
     await writeFile(
       join(CONTENT_DIR, `${repo.name}.json`),
@@ -93,7 +94,7 @@ function stripLogoBlock(content) {
     .trimStart();
 }
 
-function buildProjectData(repo, config, readme, contributing, changelog) {
+function buildProjectData(repo, config, readme, contributing, changelog, version) {
   const rewrittenReadme = rewriteImageUrls(readme, USERNAME, repo.name);
   const { logo, logo_dark } = extractLogo(rewrittenReadme);
 
@@ -108,6 +109,7 @@ function buildProjectData(repo, config, readme, contributing, changelog) {
     logo: config.logo ?? logo,
     logo_dark: config.logo_dark ?? logo_dark,
     tech_stack: config.tech_stack ?? [],
+    version: version ?? null,
     last_updated: repo.pushed_at ?? new Date().toISOString(),
     sections: {
       readme: rewrittenReadme ? stripLogoBlock(extractOverview(rewrittenReadme)) : '',
@@ -141,6 +143,16 @@ async function fetchFile(octokit, owner, repo, path) {
     const { data } = await octokit.rest.repos.getContent({ owner, repo, path });
     if (data.encoding !== 'base64') return null;
     return Buffer.from(data.content, 'base64').toString('utf-8');
+  } catch (err) {
+    if (err.status === 404) return null;
+    throw err;
+  }
+}
+
+async function fetchLatestRelease(octokit, owner, repo) {
+  try {
+    const { data } = await octokit.rest.repos.getLatestRelease({ owner, repo });
+    return data.tag_name;
   } catch (err) {
     if (err.status === 404) return null;
     throw err;

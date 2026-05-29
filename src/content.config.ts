@@ -13,6 +13,7 @@ const projectSchema = z.object({
   logo: z.string().nullable().optional(),
   logo_dark: z.string().nullable().optional(),
   tech_stack: z.array(z.string()).default([]),
+  version: z.string().nullable().optional(),
   last_updated: z.string(),
   sections: z.object({
     readme: z.string().default(''),
