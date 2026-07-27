@@ -2,8 +2,8 @@
 # yusukensanta/dot_files bootstrap installer
 #
 # Usage:
-#   curl -sSL https://yusukensanta.github.io/install.sh | bash
-#   curl -sSL https://yusukensanta.github.io/install.sh | bash -s -- --yes
+#   curl -sSL https://yusukensanta.github.io/projects/dot_files/install.sh | bash
+#   curl -sSL https://yusukensanta.github.io/projects/dot_files/install.sh | bash -s -- --yes
 #
 # What this does:
 #   1. Clones (or updates) yusukensanta/dot_files into $DOTFILES_DIR (default: ~/dot_files)
