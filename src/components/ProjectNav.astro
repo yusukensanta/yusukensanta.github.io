@@ -1,31 +1,39 @@
 ---
+import type { Locale } from '../i18n/paths';
+import { toLocalePath } from '../i18n/paths';
+import { t } from '../i18n/ui';
+
 interface Props {
   slug: string;
   current: 'overview' | 'installation' | 'contribution';
   hasInstallation: boolean;
   hasContribution: boolean;
+  locale?: Locale;
 }
-const { slug, current, hasInstallation, hasContribution } = Astro.props;
+const { slug, current, hasInstallation, hasContribution, locale = 'en' } = Astro.props;
 ---
 
-<nav class="project-subnav" aria-label="Project sections">
-  <a href={`/projects/${slug}/`} class:list={['subnav-link', { active: current === 'overview' }]}>
-    Overview
+<nav class="project-subnav" aria-label={t(locale, 'aria.projectSections')}>
+  <a
+    href={toLocalePath(`/projects/${slug}/`, locale)}
+    class:list={['subnav-link', { active: current === 'overview' }]}
+  >
+    {t(locale, 'nav.overview')}
   </a>
   {hasInstallation && (
     <a
-      href={`/projects/${slug}/installation/`}
+      href={toLocalePath(`/projects/${slug}/installation/`, locale)}
       class:list={['subnav-link', { active: current === 'installation' }]}
     >
-      Installation
+      {t(locale, 'nav.installation')}
     </a>
   )}
   {hasContribution && (
     <a
-      href={`/projects/${slug}/contribution/`}
+      href={toLocalePath(`/projects/${slug}/contribution/`, locale)}
       class:list={['subnav-link', { active: current === 'contribution' }]}
     >
-      Contributing
+      {t(locale, 'nav.contributing')}
     </a>
   )}
 </nav>

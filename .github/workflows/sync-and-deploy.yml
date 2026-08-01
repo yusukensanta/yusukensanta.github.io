@@ -46,10 +46,19 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Restore translation cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .translations-cache
+          key: translations-${{ github.run_id }}
+          restore-keys: |
+            translations-
+
       - name: Sync project data from GitHub
         env:
           GITHUB_TOKEN: ${{ secrets.PORTFOLIO_PAT }}
           GITHUB_USERNAME: yusukensanta
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
         run: pnpm sync
 
       - name: Build Astro site

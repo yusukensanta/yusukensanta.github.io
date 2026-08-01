@@ -1,14 +1,25 @@
 ---
+import type { Locale } from '../i18n/paths';
+import { toLocalePath } from '../i18n/paths';
+import { t, splitTemplate } from '../i18n/ui';
+
 interface Props {
   title: string;
   description?: string;
+  locale?: Locale;
 }
-const { title, description = 'Open source projects by yusukensanta' } = Astro.props;
+const { title, description = 'Open source projects by yusukensanta', locale = 'en' } = Astro.props;
 const siteUrl = 'https://yusukensanta.github.io';
+const homeHref = toLocalePath('/', locale);
+const otherLocale: Locale = locale === 'en' ? 'ja' : 'en';
+const switcherHref = toLocalePath(Astro.url.pathname, otherLocale);
+const [footerBefore, footerAfter] = splitTemplate(t(locale, 'footer.built'), '{astroLink}');
+const enHref = `${siteUrl}${toLocalePath(Astro.url.pathname, 'en')}`;
+const jaHref = `${siteUrl}${toLocalePath(Astro.url.pathname, 'ja')}`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,6 +28,8 @@ const siteUrl = 'https://yusukensanta.github.io';
     <meta property="og:description" content={description} />
     <meta property="og:url" content={siteUrl} />
     <title>{title}</title>
+    <link rel="alternate" hreflang="en" href={enHref} />
+    <link rel="alternate" hreflang="ja" href={jaHref} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,8 +38,11 @@ const siteUrl = 'https://yusukensanta.github.io';
   <body>
     <nav class="site-nav">
       <div class="container nav-inner">
-        <a class="nav-brand" href="/">yusukensanta</a>
-        <a href="https://github.com/yusukensanta" target="_blank" rel="noopener">GitHub</a>
+        <a class="nav-brand" href={homeHref}>yusukensanta</a>
+        <div class="nav-links">
+          <a href="https://github.com/yusukensanta" target="_blank" rel="noopener">{t(locale, 'nav.github')}</a>
+          <a class="lang-switch" href={switcherHref}>{t(locale, 'nav.lang')}</a>
+        </div>
       </div>
     </nav>
 
@@ -36,7 +52,7 @@ const siteUrl = 'https://yusukensanta.github.io';
 
     <footer class="site-footer">
       <div class="container">
-        <p>Built with <a href="https://astro.build">Astro</a> · Auto-synced from GitHub</p>
+        <p>{footerBefore}<a href="https://astro.build">Astro</a>{footerAfter}</p>
       </div>
     </footer>
   </body>
@@ -63,6 +79,8 @@ const siteUrl = 'https://yusukensanta.github.io';
     font-size: 1.1rem;
     color: var(--color-text);
   }
+  .nav-links { display: flex; align-items: center; gap: 1rem; }
+  .lang-switch { color: var(--color-text-muted); }
   main { padding: 2rem 1.5rem; }
   .site-footer {
     border-top: 1px solid var(--color-border);

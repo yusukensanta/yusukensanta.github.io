@@ -13,5 +13,17 @@
     "installation": "## Installation\n\n```bash\npnpm add web-toolkit\n```\n\n```typescript\nimport { parseUrl, getCookie } from 'web-toolkit';\n```\n",
     "contributing": "## Contributing\n\nWe welcome contributions!\n\n- Run `pnpm test` to verify all tests pass\n- Follow conventional commits for commit messages\n- Open an issue before working on large changes\n",
     "changelog": "## v1.1.0 — 2026-05-01\n\n- Add `fetchWithRetry` utility\n- Improve TypeScript typings\n\n## v1.0.0 — 2026-02-15\n\n- Stable release\n"
+  },
+  "translations": {
+    "ja": {
+      "source_hash": "sample",
+      "title": "web-toolkit",
+      "description": "URL 解析、Cookie ヘルパー、fetch ラッパーなど、Web 開発向けユーティリティ関数集です。",
+      "sections": {
+        "readme": "# web-toolkit\n\nWeb 開発向けユーティリティ関数のコレクションです。\n\n[![npm](https://img.shields.io/npm/v/web-toolkit)](https://www.npmjs.com/package/web-toolkit)\n",
+        "installation": "## インストール\n\n```bash\npnpm add web-toolkit\n```\n\n```typescript\nimport { parseUrl, getCookie } from 'web-toolkit';\n```\n",
+        "contributing": "## コントリビュート\n\nコントリビュートを歓迎します!\n\n- `pnpm test` を実行してすべてのテストが通ることを確認してください\n- コミットメッセージは Conventional Commits に従ってください\n- 大きな変更に着手する前に Issue を開いてください\n"
+      }
+    }
   }
 }

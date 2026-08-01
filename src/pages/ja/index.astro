@@ -1,10 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { t, splitTemplate } from '../i18n/ui';
-import type { Project } from '../content.config';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { toLocalePath } from '../../i18n/paths';
+import { t, splitTemplate } from '../../i18n/ui';
+import type { Project } from '../../content.config';
 
-const locale = 'en' as const;
+const locale = 'ja' as const;
 const entries = await getCollection('projects');
 const projects = entries
   .map(e => e.data as Project)
@@ -12,7 +13,7 @@ const projects = entries
 const [emptyBefore, emptyMid, emptyAfter] = splitTemplate(t(locale, 'projects.empty'), '{cmd1}', '{cmd2}');
 ---
 
-<BaseLayout title="yusukensanta">
+<BaseLayout title="yusukensanta" locale={locale}>
   <section class="profile">
     <img
       class="avatar"
@@ -40,40 +41,45 @@ const [emptyBefore, emptyMid, emptyAfter] = splitTemplate(t(locale, 'projects.em
       </p>
     ) : (
       <ul class="project-list" role="list">
-        {projects.map(p => (
-          <li class="project-row">
-            <div class="row-top">
-              <a class="project-name" href={`/projects/${p.slug}/`}>{p.title}</a>
-              <div class="row-chips">
-                {p.stars > 0 && <span class="chip">★ {p.stars}</span>}
-                {p.forks > 0 && <span class="chip">{p.forks} forks</span>}
+        {projects.map(p => {
+          const title = p.translations?.ja?.title || p.title;
+          const description = p.translations?.ja?.description || p.description;
+          const overviewHref = toLocalePath(`/projects/${p.slug}/`, locale);
+          return (
+            <li class="project-row">
+              <div class="row-top">
+                <a class="project-name" href={overviewHref}>{title}</a>
+                <div class="row-chips">
+                  {p.stars > 0 && <span class="chip">★ {p.stars}</span>}
+                  {p.forks > 0 && <span class="chip">{p.forks} forks</span>}
+                </div>
               </div>
-            </div>
 
-            {p.description && <p class="row-desc">{p.description}</p>}
+              {description && <p class="row-desc">{description}</p>}
 
-            <div class="row-bottom">
-              {p.tech_stack.length > 0 && (
-                <ul class="tech-list" aria-label={t(locale, 'aria.techStack')}>
-                  {p.tech_stack.map(tech => <li class="tech-badge">{tech}</li>)}
-                </ul>
-              )}
-              <nav class="row-links" aria-label={splitTemplate(t(locale, 'aria.projectLinks'), '{title}').join(p.title)}>
-                <a href={`/projects/${p.slug}/`}>{t(locale, 'nav.overview')}</a>
-                {p.sections.installation?.trim() && (
-                  <a href={`/projects/${p.slug}/installation/`}>{t(locale, 'links.install')}</a>
+              <div class="row-bottom">
+                {p.tech_stack.length > 0 && (
+                  <ul class="tech-list" aria-label={t(locale, 'aria.techStack')}>
+                    {p.tech_stack.map(tech => <li class="tech-badge">{tech}</li>)}
+                  </ul>
                 )}
-                {p.sections.contributing?.trim() && (
-                  <a href={`/projects/${p.slug}/contribution/`}>{t(locale, 'links.contribute')}</a>
-                )}
-                <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener">{t(locale, 'nav.github')} ↗</a>
-                {p.homepage && (
-                  <a href={p.homepage} target="_blank" rel="noopener">{t(locale, 'links.demo')}</a>
-                )}
-              </nav>
-            </div>
-          </li>
-        ))}
+                <nav class="row-links" aria-label={splitTemplate(t(locale, 'aria.projectLinks'), '{title}').join(title)}>
+                  <a href={overviewHref}>{t(locale, 'nav.overview')}</a>
+                  {p.sections.installation?.trim() && (
+                    <a href={toLocalePath(`/projects/${p.slug}/installation/`, locale)}>{t(locale, 'links.install')}</a>
+                  )}
+                  {p.sections.contributing?.trim() && (
+                    <a href={toLocalePath(`/projects/${p.slug}/contribution/`, locale)}>{t(locale, 'links.contribute')}</a>
+                  )}
+                  <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener">{t(locale, 'nav.github')} ↗</a>
+                  {p.homepage && (
+                    <a href={p.homepage} target="_blank" rel="noopener">{t(locale, 'links.demo')}</a>
+                  )}
+                </nav>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     )}
   </section>

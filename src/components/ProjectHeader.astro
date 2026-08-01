@@ -1,42 +1,51 @@
 ---
 import type { Project } from '../content.config';
+import type { Locale } from '../i18n/paths';
+import { toLocalePath } from '../i18n/paths';
+import { t, splitTemplate } from '../i18n/ui';
 
 interface Props {
   project: Project;
+  locale?: Locale;
+  title?: string;
+  description?: string;
 }
-const { project } = Astro.props;
-const updatedDate = new Date(project.last_updated).toLocaleDateString('en-US', {
-  year: 'numeric', month: 'long', day: 'numeric',
-});
+const { project, locale = 'en', title = project.title, description = project.description } = Astro.props;
+const updatedDate = new Date(project.last_updated).toLocaleDateString(
+  locale === 'ja' ? 'ja-JP' : 'en-US',
+  { year: 'numeric', month: 'long', day: 'numeric' },
+);
+const [updatedBefore, updatedAfter] = splitTemplate(t(locale, 'meta.updated'), '{date}');
+const [forksBefore, forksAfter] = splitTemplate(t(locale, 'meta.forks'), '{count}');
 ---
 
 <header class="project-header">
-  <div class="breadcrumb"><a href="/">← Home</a></div>
+  <div class="breadcrumb"><a href={toLocalePath('/', locale)}>{t(locale, 'nav.home')}</a></div>
   {project.logo && (
     <picture class="project-logo">
       {project.logo_dark && (
         <source media="(prefers-color-scheme: dark)" srcset={project.logo_dark} />
       )}
-      <img src={project.logo} alt={`${project.title} logo`} height="56" />
+      <img src={project.logo} alt={`${title} logo`} height="56" />
     </picture>
   )}
-  <h1>{project.title}</h1>
-  {project.description && <p class="project-desc">{project.description}</p>}
+  <h1>{title}</h1>
+  {description && <p class="project-desc">{description}</p>}
   <div class="project-meta">
     {project.version && <span>{project.version}</span>}
     {project.stars > 0 && <span>★ {project.stars}</span>}
-    {project.forks > 0 && <span>{project.forks} forks</span>}
-    <span>Updated {updatedDate}</span>
+    {project.forks > 0 && <span>{forksBefore}{project.forks}{forksAfter}</span>}
+    <span>{updatedBefore}{updatedDate}{updatedAfter}</span>
   </div>
   {project.tech_stack.length > 0 && (
-    <ul class="tech-list" aria-label="Tech stack">
+    <ul class="tech-list" aria-label={t(locale, 'aria.techStack')}>
       {project.tech_stack.map(t => <li class="tech-badge">{t}</li>)}
     </ul>
   )}
   <div class="project-links">
-    <a href={`https://github.com/${project.repo}`} target="_blank" rel="noopener">GitHub ↗</a>
+    <a href={`https://github.com/${project.repo}`} target="_blank" rel="noopener">{t(locale, 'nav.github')} ↗</a>
     {project.homepage && (
-      <a href={project.homepage} target="_blank" rel="noopener">Live Demo ↗</a>
+      <a href={project.homepage} target="_blank" rel="noopener">{t(locale, 'links.liveDemo')}</a>
     )}
   </div>
 </header>
