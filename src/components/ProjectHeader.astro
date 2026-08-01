@@ -7,8 +7,10 @@ import { t, splitTemplate } from '../i18n/ui';
 interface Props {
   project: Project;
   locale?: Locale;
+  title?: string;
+  description?: string;
 }
-const { project, locale = 'en' } = Astro.props;
+const { project, locale = 'en', title = project.title, description = project.description } = Astro.props;
 const updatedDate = new Date(project.last_updated).toLocaleDateString(
   locale === 'ja' ? 'ja-JP' : 'en-US',
   { year: 'numeric', month: 'long', day: 'numeric' },
@@ -24,11 +26,11 @@ const [forksBefore, forksAfter] = splitTemplate(t(locale, 'meta.forks'), '{count
       {project.logo_dark && (
         <source media="(prefers-color-scheme: dark)" srcset={project.logo_dark} />
       )}
-      <img src={project.logo} alt={`${project.title} logo`} height="56" />
+      <img src={project.logo} alt={`${title} logo`} height="56" />
     </picture>
   )}
-  <h1>{project.title}</h1>
-  {project.description && <p class="project-desc">{project.description}</p>}
+  <h1>{title}</h1>
+  {description && <p class="project-desc">{description}</p>}
   <div class="project-meta">
     {project.version && <span>{project.version}</span>}
     {project.stars > 0 && <span>★ {project.stars}</span>}

@@ -42,8 +42,8 @@ const [emptyBefore, emptyMid, emptyAfter] = splitTemplate(t(locale, 'projects.em
     ) : (
       <ul class="project-list" role="list">
         {projects.map(p => {
-          const title = p.translations?.ja?.title ?? p.title;
-          const description = p.translations?.ja?.description ?? p.description;
+          const title = p.translations?.ja?.title || p.title;
+          const description = p.translations?.ja?.description || p.description;
           const overviewHref = toLocalePath(`/projects/${p.slug}/`, locale);
           return (
             <li class="project-row">

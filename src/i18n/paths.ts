@@ -1,5 +1,4 @@
 export type Locale = 'en' | 'ja';
-export const LOCALES: readonly Locale[] = ['en', 'ja'];
 
 /**
  * Returns `pathname` rewritten for `locale`, adding or stripping the

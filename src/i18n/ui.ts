@@ -22,6 +22,9 @@ export const ui = {
     'links.liveDemo': 'Live Demo ↗',
     'meta.forks': '{count} forks',
     'meta.updated': 'Updated {date}',
+    'meta.installDescription': 'How to install {title}',
+    'meta.contributeDescription': 'How to contribute to {title}',
+    'projects.noOverview': 'No overview available.',
   },
   ja: {
     'nav.github': 'GitHub',
@@ -44,6 +47,9 @@ export const ui = {
     'links.liveDemo': 'ライブデモ ↗',
     'meta.forks': '{count} フォーク',
     'meta.updated': '{date} 更新',
+    'meta.installDescription': '{title} のインストール方法',
+    'meta.contributeDescription': '{title} への貢献方法',
+    'projects.noOverview': '概要はありません。',
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 

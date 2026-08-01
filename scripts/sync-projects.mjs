@@ -5,10 +5,11 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { extractOverview, extractInstallation, extractSections, findSection } from './markdown-utils.mjs';
 import { hasBadge, injectBadge } from './badge-utils.mjs';
-import { buildTranslations } from './translate.mjs';
+import { buildTranslations, readCacheEntry } from './translate.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONTENT_DIR = join(__dirname, '..', 'src', 'content', 'projects');
+const TRANSLATIONS_CACHE_DIR = join(__dirname, '..', '.translations-cache');
 const USERNAME = process.env.GITHUB_USERNAME ?? 'yusukensanta';
 
 async function main() {
@@ -45,7 +46,15 @@ async function main() {
     const version = await fetchLatestRelease(octokit, USERNAME, repo.name);
 
     const projectData = buildProjectData(repo, config, readme, contributing, changelog, version);
-    projectData.translations = await buildTranslations(repo.name, projectData, deeplApiKey);
+    try {
+      projectData.translations = await buildTranslations(repo.name, projectData, deeplApiKey, {
+        cacheDir: TRANSLATIONS_CACHE_DIR,
+      });
+    } catch (err) {
+      console.warn(`  ⚠ Translation failed for ${repo.name} — falling back to cached/English content: ${err.message}`);
+      const cached = await readCacheEntry(repo.name, TRANSLATIONS_CACHE_DIR);
+      projectData.translations = cached ? { ja: cached } : undefined;
+    }
 
     await writeFile(
       join(CONTENT_DIR, `${repo.name}.json`),

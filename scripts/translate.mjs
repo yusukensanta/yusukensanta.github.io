@@ -2,11 +2,20 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const DEEPL_ENDPOINT = 'https://api-free.deepl.com/v2/translate';
 const DEFAULT_CACHE_DIR = '.translations-cache';
 
 const FENCED_CODE_RE = /```[\s\S]*?```/g;
 const INLINE_CODE_RE = /`[^`\n]+`/g;
+const LEFTOVER_PLACEHOLDER_RE = /__CODE_\d+__/;
+
+/**
+ * DeepL free-tier API keys are suffixed with `:fx` and must use the free
+ * host; Pro keys use the standard host and get a 403 from the free one.
+ */
+function deeplEndpoint(apiKey) {
+  const host = apiKey?.endsWith(':fx') ? 'api-free.deepl.com' : 'api.deepl.com';
+  return `https://${host}/v2/translate`;
+}
 
 /**
  * Replaces fenced and inline code spans with `__CODE_N__` placeholders so
@@ -30,14 +39,16 @@ export function extractCode(text) {
 /** Reverses `extractCode`, restoring original code verbatim. */
 export function restoreCode(text, codeBlocks) {
   return codeBlocks.reduce(
-    (acc, block, i) => acc.replaceAll(`__CODE_${i}__`, block),
+    // Use a function replacer, not a string, so `block` is never interpreted
+    // as a $$-style replacement pattern by String.prototype.replaceAll.
+    (acc, block, i) => acc.replaceAll(`__CODE_${i}__`, () => block),
     text,
   );
 }
 
 /** SHA-256 hash of the given fields, joined by a NUL separator. */
 export function hashContent(fields) {
-  return createHash('sha256').update(fields.join(' ')).digest('hex');
+  return createHash('sha256').update(fields.join('\0')).digest('hex');
 }
 
 /**
@@ -49,7 +60,7 @@ export async function translateText(text, apiKey, fetchImpl = fetch) {
 
   const { text: placeholdered, codeBlocks } = extractCode(text);
 
-  const response = await fetchImpl(DEEPL_ENDPOINT, {
+  const response = await fetchImpl(deeplEndpoint(apiKey), {
     method: 'POST',
     headers: {
       Authorization: `DeepL-Auth-Key ${apiKey}`,
@@ -68,7 +79,16 @@ export async function translateText(text, apiKey, fetchImpl = fetch) {
 
   const data = await response.json();
   const translated = data.translations?.[0]?.text ?? '';
-  return restoreCode(translated, codeBlocks);
+  const restored = restoreCode(translated, codeBlocks);
+
+  if (LEFTOVER_PLACEHOLDER_RE.test(restored)) {
+    console.warn(
+      '  ⚠ Translation contained a mangled code placeholder — falling back to English source text.',
+    );
+    return text;
+  }
+
+  return restored;
 }
 
 /** Reads `<cacheDir>/<repoName>.json`, or null if it doesn't exist. */

@@ -4,7 +4,7 @@ import { marked } from 'marked';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import ProjectHeader from '../../../../components/ProjectHeader.astro';
 import ProjectNav from '../../../../components/ProjectNav.astro';
-import { t } from '../../../../i18n/ui';
+import { t, splitTemplate } from '../../../../i18n/ui';
 import type { Project } from '../../../../content.config';
 
 const locale = 'ja' as const;
@@ -21,17 +21,20 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const translated = project.translations?.ja;
-const content = translated?.sections.installation ?? project.sections.installation;
+const content = translated?.sections.installation || project.sections.installation;
 const rendered = marked.parse(content) as string;
-const title = translated?.title ?? project.title;
+const title = translated?.title || project.title;
+const description = translated?.description || project.description;
+const [installDescBefore, installDescAfter] = splitTemplate(t(locale, 'meta.installDescription'), '{title}');
+const metaDescription = `${installDescBefore}${title}${installDescAfter}`;
 ---
 
 <BaseLayout
   title={`${title} — ${t(locale, 'nav.installation')} — yusukensanta`}
-  description={`How to install ${title}`}
+  description={metaDescription}
   locale={locale}
 >
-  <ProjectHeader project={project} locale={locale} />
+  <ProjectHeader project={project} locale={locale} title={title} description={description} />
   <ProjectNav
     slug={project.slug}
     current="installation"

@@ -41,6 +41,15 @@ describe('extractCode / restoreCode', () => {
     expect(placeholdered).toBe(text);
     expect(codeBlocks).toHaveLength(0);
   });
+
+  it('round-trips code containing $$-style replacement-pattern sequences without corruption', () => {
+    // String.prototype.replaceAll interprets $$, $&, $`, $' specially when
+    // given a *string* replacement — restoreCode must use a function
+    // replacer instead, or these literal characters get mangled.
+    const text = 'Run:\n```bash\necho $$\n```\nAlso try `a$&b`.';
+    const { text: placeholdered, codeBlocks } = extractCode(text);
+    expect(restoreCode(placeholdered, codeBlocks)).toBe(text);
+  });
 });
 
 describe('hashContent', () => {
@@ -76,6 +85,37 @@ describe('translateText', () => {
   it('throws when DeepL responds with a non-OK status', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 456, statusText: 'Quota Exceeded' });
     await expect(translateText('hello', 'fake-key', fetchImpl)).rejects.toThrow('456');
+  });
+
+  it('falls back to the original English text when a placeholder survives mangled', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      // DeepL corrupted the digit (`__CODE_0__` → `__CODE_00__`), so it no
+      // longer matches any entry in `codeBlocks` and restoreCode can't
+      // substitute it back — the raw placeholder-shaped text leaks through.
+      json: async () => ({ translations: [{ text: '実行: __CODE_00__' }] }),
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const original = 'Run `pnpm install`';
+    const result = await translateText(original, 'fake-key', fetchImpl);
+    expect(result).toBe(original);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('falls back to the original English text when a placeholder references a nonexistent index', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      // The source only has one code span (index 0), but DeepL's response
+      // references `__CODE_1__`, which has no matching entry in
+      // `codeBlocks` — restoreCode has nothing to substitute it with.
+      json: async () => ({ translations: [{ text: '実行: __CODE_0__ そして __CODE_1__' }] }),
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const original = 'Run `pnpm install`';
+    const result = await translateText(original, 'fake-key', fetchImpl);
+    expect(result).toBe(original);
+    warnSpy.mockRestore();
   });
 });
 

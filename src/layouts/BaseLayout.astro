@@ -14,6 +14,8 @@ const homeHref = toLocalePath('/', locale);
 const otherLocale: Locale = locale === 'en' ? 'ja' : 'en';
 const switcherHref = toLocalePath(Astro.url.pathname, otherLocale);
 const [footerBefore, footerAfter] = splitTemplate(t(locale, 'footer.built'), '{astroLink}');
+const enHref = `${siteUrl}${toLocalePath(Astro.url.pathname, 'en')}`;
+const jaHref = `${siteUrl}${toLocalePath(Astro.url.pathname, 'ja')}`;
 ---
 
 <!doctype html>
@@ -26,6 +28,8 @@ const [footerBefore, footerAfter] = splitTemplate(t(locale, 'footer.built'), '{a
     <meta property="og:description" content={description} />
     <meta property="og:url" content={siteUrl} />
     <title>{title}</title>
+    <link rel="alternate" hreflang="en" href={enHref} />
+    <link rel="alternate" hreflang="ja" href={jaHref} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

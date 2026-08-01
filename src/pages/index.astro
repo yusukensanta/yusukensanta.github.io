@@ -1,12 +1,15 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { t, splitTemplate } from '../i18n/ui';
 import type { Project } from '../content.config';
 
+const locale = 'en' as const;
 const entries = await getCollection('projects');
 const projects = entries
   .map(e => e.data as Project)
   .sort((a, b) => b.stars - a.stars);
+const [emptyBefore, emptyMid, emptyAfter] = splitTemplate(t(locale, 'projects.empty'), '{cmd1}', '{cmd2}');
 ---
 
 <BaseLayout title="yusukensanta">
@@ -21,19 +24,19 @@ const projects = entries
     />
     <div class="profile-body">
       <h1>yusukensanta</h1>
-      <p class="bio">Software engineer. Building open source tools.</p>
-      <nav class="social-links" aria-label="Social links">
-        <a href="https://github.com/yusukensanta" target="_blank" rel="noopener">GitHub</a>
+      <p class="bio">{t(locale, 'profile.bio')}</p>
+      <nav class="social-links" aria-label={t(locale, 'aria.socialLinks')}>
+        <a href="https://github.com/yusukensanta" target="_blank" rel="noopener">{t(locale, 'nav.github')}</a>
       </nav>
     </div>
   </section>
 
   <section class="projects-section" aria-labelledby="projects-heading">
-    <h2 id="projects-heading">Projects</h2>
+    <h2 id="projects-heading">{t(locale, 'projects.heading')}</h2>
 
     {projects.length === 0 ? (
       <p class="empty">
-        No projects synced yet — run <code>pnpm sync</code> or <code>pnpm dev:mock</code>.
+        {emptyBefore}<code>pnpm sync</code>{emptyMid}<code>pnpm dev:mock</code>{emptyAfter}
       </p>
     ) : (
       <ul class="project-list" role="list">
@@ -51,21 +54,21 @@ const projects = entries
 
             <div class="row-bottom">
               {p.tech_stack.length > 0 && (
-                <ul class="tech-list" aria-label="Tech stack">
-                  {p.tech_stack.map(t => <li class="tech-badge">{t}</li>)}
+                <ul class="tech-list" aria-label={t(locale, 'aria.techStack')}>
+                  {p.tech_stack.map(tech => <li class="tech-badge">{tech}</li>)}
                 </ul>
               )}
-              <nav class="row-links" aria-label={`${p.title} links`}>
-                <a href={`/projects/${p.slug}/`}>Overview</a>
+              <nav class="row-links" aria-label={splitTemplate(t(locale, 'aria.projectLinks'), '{title}').join(p.title)}>
+                <a href={`/projects/${p.slug}/`}>{t(locale, 'nav.overview')}</a>
                 {p.sections.installation?.trim() && (
-                  <a href={`/projects/${p.slug}/installation/`}>Install</a>
+                  <a href={`/projects/${p.slug}/installation/`}>{t(locale, 'links.install')}</a>
                 )}
                 {p.sections.contributing?.trim() && (
-                  <a href={`/projects/${p.slug}/contribution/`}>Contribute</a>
+                  <a href={`/projects/${p.slug}/contribution/`}>{t(locale, 'links.contribute')}</a>
                 )}
-                <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener">GitHub ↗</a>
+                <a href={`https://github.com/${p.repo}`} target="_blank" rel="noopener">{t(locale, 'nav.github')} ↗</a>
                 {p.homepage && (
-                  <a href={p.homepage} target="_blank" rel="noopener">Demo ↗</a>
+                  <a href={p.homepage} target="_blank" rel="noopener">{t(locale, 'links.demo')}</a>
                 )}
               </nav>
             </div>
