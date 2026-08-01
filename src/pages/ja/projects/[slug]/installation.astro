@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ProjectHeader from '../../../../components/ProjectHeader.astro';
+import ProjectNav from '../../../../components/ProjectNav.astro';
+import { t } from '../../../../i18n/ui';
+import type { Project } from '../../../../content.config';
+
+const locale = 'ja' as const;
+
+export async function getStaticPaths() {
+  const entries = await getCollection('projects');
+  return entries
+    .filter(e => (e.data as Project).sections.installation?.trim())
+    .map(entry => ({
+      params: { slug: entry.id },
+      props: { project: entry.data as Project },
+    }));
+}
+
+const { project } = Astro.props;
+const translated = project.translations?.ja;
+const content = translated?.sections.installation ?? project.sections.installation;
+const rendered = marked.parse(content) as string;
+const title = translated?.title ?? project.title;
+---
+
+<BaseLayout
+  title={`${title} — ${t(locale, 'nav.installation')} — yusukensanta`}
+  description={`How to install ${title}`}
+  locale={locale}
+>
+  <ProjectHeader project={project} locale={locale} />
+  <ProjectNav
+    slug={project.slug}
+    current="installation"
+    hasInstallation={true}
+    hasContribution={!!project.sections.contributing?.trim()}
+    locale={locale}
+  />
+  <section class="prose" set:html={rendered} />
+</BaseLayout>

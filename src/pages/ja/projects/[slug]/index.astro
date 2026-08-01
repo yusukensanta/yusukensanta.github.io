@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ProjectHeader from '../../../../components/ProjectHeader.astro';
+import ProjectNav from '../../../../components/ProjectNav.astro';
+import type { Project } from '../../../../content.config';
+
+const locale = 'ja' as const;
+
+export async function getStaticPaths() {
+  const entries = await getCollection('projects');
+  return entries.map(entry => ({
+    params: { slug: entry.id },
+    props: { project: entry.data as Project },
+  }));
+}
+
+const { project } = Astro.props;
+const translated = project.translations?.ja;
+const content = translated?.sections.readme ?? project.sections.readme ?? '';
+const rendered = content ? (marked.parse(content) as string) : '';
+const title = translated?.title ?? project.title;
+const description = translated?.description ?? project.description;
+---
+
+<BaseLayout title={`${title} — yusukensanta`} description={description} locale={locale}>
+  <ProjectHeader project={project} locale={locale} />
+  <ProjectNav
+    slug={project.slug}
+    current="overview"
+    hasInstallation={!!project.sections.installation?.trim()}
+    hasContribution={!!project.sections.contributing?.trim()}
+    locale={locale}
+  />
+  {rendered
+    ? <section class="prose" set:html={rendered} />
+    : <p class="no-content">No overview available.</p>
+  }
+</BaseLayout>
+
+<style>
+  .no-content { color: var(--color-text-muted); padding: 2rem 0; }
+</style>
