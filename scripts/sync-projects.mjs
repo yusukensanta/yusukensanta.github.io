@@ -5,6 +5,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { extractOverview, extractInstallation, extractSections, findSection } from './markdown-utils.mjs';
 import { hasBadge, injectBadge } from './badge-utils.mjs';
+import { buildTranslations } from './translate.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONTENT_DIR = join(__dirname, '..', 'src', 'content', 'projects');
@@ -16,6 +17,7 @@ async function main() {
     console.error('Error: GITHUB_TOKEN environment variable is required.');
     process.exit(1);
   }
+  const deeplApiKey = process.env.DEEPL_API_KEY;
 
   const octokit = new Octokit({ auth: token });
   await mkdir(CONTENT_DIR, { recursive: true });
@@ -43,6 +45,7 @@ async function main() {
     const version = await fetchLatestRelease(octokit, USERNAME, repo.name);
 
     const projectData = buildProjectData(repo, config, readme, contributing, changelog, version);
+    projectData.translations = await buildTranslations(repo.name, projectData, deeplApiKey);
 
     await writeFile(
       join(CONTENT_DIR, `${repo.name}.json`),

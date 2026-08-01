@@ -5,6 +5,9 @@ dist/
 # Generated content (produced by sync script at CI time)
 src/content/projects/*.json
 
+# Translation cache (persisted across CI runs via actions/cache, not git)
+.translations-cache/
+
 # Node
 node_modules/
 .pnpm-store/
