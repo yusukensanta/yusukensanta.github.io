@@ -2,6 +2,17 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'zod';
 
+const translationSchema = z.object({
+  source_hash: z.string(),
+  title: z.string(),
+  description: z.string(),
+  sections: z.object({
+    readme: z.string().default(''),
+    installation: z.string().default(''),
+    contributing: z.string().default(''),
+  }),
+});
+
 const projectSchema = z.object({
   title: z.string(),
   slug: z.string(),
@@ -21,6 +32,9 @@ const projectSchema = z.object({
     contributing: z.string().default(''),
     changelog: z.string().default(''),
   }),
+  translations: z.object({
+    ja: translationSchema.optional(),
+  }).optional(),
 });
 
 export type Project = z.infer<typeof projectSchema>;
