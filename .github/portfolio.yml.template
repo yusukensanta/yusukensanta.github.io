@@ -18,3 +18,14 @@ enabled: true
 #   - Python
 #   - FastAPI
 #   - PostgreSQL
+
+# --- Japanese translation (automatic, no config needed) ---
+# Your title, description, README overview, installation, and contributing
+# sections are auto-translated to Japanese and published under /ja/.
+# Nothing to set here — just be aware of two limits:
+#   - Any single field over 5,000 characters is skipped (that field falls
+#     back to showing the English text on the Japanese page instead).
+#   - Translation runs on a DeepL API key shared across every repo on this
+#     portfolio, with a 1,000,000-character LIFETIME budget (does not
+#     reset monthly). Very large or very frequently-changing READMEs use
+#     up more of that shared budget.

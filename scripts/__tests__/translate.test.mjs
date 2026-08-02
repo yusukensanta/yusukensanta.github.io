@@ -10,6 +10,7 @@ import {
   readCacheEntry,
   writeCacheEntry,
   buildTranslations,
+  DEFAULT_MAX_CHARS_PER_FIELD,
 } from '../translate.mjs';
 
 describe('extractCode / restoreCode', () => {
@@ -115,6 +116,38 @@ describe('translateText', () => {
     const original = 'Run `pnpm install`';
     const result = await translateText(original, 'fake-key', fetchImpl);
     expect(result).toBe(original);
+    warnSpy.mockRestore();
+  });
+
+  it('skips DeepL and returns the original text when it exceeds the char cap', async () => {
+    const fetchImpl = vi.fn();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const longText = 'a'.repeat(101);
+    const result = await translateText(longText, 'fake-key', fetchImpl, 100);
+    expect(result).toBe(longText);
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('translates text at or under the char cap normally', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: [{ text: '翻訳済み' }] }),
+    });
+    const text = 'a'.repeat(100);
+    const result = await translateText(text, 'fake-key', fetchImpl, 100);
+    expect(result).toBe('翻訳済み');
+    expect(fetchImpl).toHaveBeenCalled();
+  });
+
+  it('defaults the char cap to DEFAULT_MAX_CHARS_PER_FIELD when not specified', async () => {
+    const fetchImpl = vi.fn();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const longText = 'a'.repeat(DEFAULT_MAX_CHARS_PER_FIELD + 1);
+    const result = await translateText(longText, 'fake-key', fetchImpl);
+    expect(result).toBe(longText);
+    expect(fetchImpl).not.toHaveBeenCalled();
     warnSpy.mockRestore();
   });
 });
@@ -224,5 +257,29 @@ describe('buildTranslations', () => {
     const result = await buildTranslations('demo-cli', projectData, undefined, { fetchImpl, cacheDir });
     expect(result).toBeUndefined();
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('skips only the oversized field when maxChars is set, translating the rest normally', async () => {
+    const oversizedProjectData = {
+      ...projectData,
+      sections: { ...projectData.sections, readme: 'x'.repeat(50) },
+    };
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: [{ text: '翻訳済み' }] }),
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const result = await buildTranslations('demo-cli', oversizedProjectData, 'fake-key', {
+      fetchImpl,
+      cacheDir,
+      maxChars: 30,
+    });
+    // readme (50 chars) exceeds maxChars (30) and is skipped — left as the
+    // original English text — while the other, shorter fields (title 8,
+    // description 19, installation 21, contributing 10) still translate.
+    expect(result.ja.sections.readme).toBe('x'.repeat(50));
+    expect(result.ja.title).toBe('翻訳済み');
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+    warnSpy.mockRestore();
   });
 });

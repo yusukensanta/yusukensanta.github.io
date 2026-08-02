@@ -4,6 +4,15 @@ import { join } from 'node:path';
 
 const DEFAULT_CACHE_DIR = '.translations-cache';
 
+/**
+ * DeepL's Developer (free-tier) API key grants 1,000,000 characters
+ * TOTAL, for the lifetime of the key — it does not reset monthly. A
+ * single oversized field (e.g. a long README) could burn a large slice
+ * of that budget in one call, so fields longer than this are skipped
+ * (left untranslated, falling back to English) rather than sent to DeepL.
+ */
+export const DEFAULT_MAX_CHARS_PER_FIELD = 5000;
+
 const FENCED_CODE_RE = /```[\s\S]*?```/g;
 const INLINE_CODE_RE = /`[^`\n]+`/g;
 const LEFTOVER_PLACEHOLDER_RE = /__CODE_\d+__/;
@@ -54,9 +63,19 @@ export function hashContent(fields) {
 /**
  * Translates `text` EN → JA via DeepL, protecting code spans first.
  * Empty/whitespace-only text is returned unchanged without an API call.
+ * Text longer than `maxChars` is also returned unchanged without an API
+ * call, to avoid a single large field spending a big slice of DeepL's
+ * non-renewing character budget.
  */
-export async function translateText(text, apiKey, fetchImpl = fetch) {
+export async function translateText(text, apiKey, fetchImpl = fetch, maxChars = DEFAULT_MAX_CHARS_PER_FIELD) {
   if (!text.trim()) return text;
+
+  if (text.length > maxChars) {
+    console.warn(
+      `  ⚠ Text is ${text.length} chars, over the ${maxChars}-char cap — skipping translation to conserve the DeepL character budget.`,
+    );
+    return text;
+  }
 
   const { text: placeholdered, codeBlocks } = extractCode(text);
 
@@ -115,7 +134,11 @@ export async function writeCacheEntry(repoName, entry, cacheDir = DEFAULT_CACHE_
  * `apiKey` is falsy, or `undefined` if there's neither a key nor a cache.
  */
 export async function buildTranslations(repoName, projectData, apiKey, options = {}) {
-  const { fetchImpl = fetch, cacheDir = DEFAULT_CACHE_DIR } = options;
+  const {
+    fetchImpl = fetch,
+    cacheDir = DEFAULT_CACHE_DIR,
+    maxChars = DEFAULT_MAX_CHARS_PER_FIELD,
+  } = options;
 
   const fields = [
     projectData.title,
@@ -137,7 +160,7 @@ export async function buildTranslations(repoName, projectData, apiKey, options =
   }
 
   const [title, description, readme, installation, contributing] = await Promise.all(
-    fields.map(field => translateText(field, apiKey, fetchImpl)),
+    fields.map(field => translateText(field, apiKey, fetchImpl, maxChars)),
   );
 
   const entry = {
