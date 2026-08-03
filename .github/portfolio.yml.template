@@ -20,8 +20,10 @@ enabled: true
 #   - PostgreSQL
 
 # --- Japanese translation (automatic, no config needed) ---
-# Your title, description, README overview, installation, and contributing
+# Your description, README overview, installation, and contributing
 # sections are auto-translated to Japanese and published under /ja/.
+# The title (repository name) is never translated — it's shown as-is on
+# both the English and Japanese pages.
 # Nothing to set here — just be aware of two limits:
 #   - Any single field over 5,000 characters is skipped (that field falls
 #     back to showing the English text on the Japanese page instead).

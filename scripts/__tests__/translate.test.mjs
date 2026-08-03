@@ -202,8 +202,10 @@ describe('buildTranslations', () => {
       json: async () => ({ translations: [{ text: '翻訳済み' }] }),
     });
     const result = await buildTranslations('demo-cli', projectData, 'fake-key', { fetchImpl, cacheDir });
-    expect(result.ja.title).toBe('翻訳済み');
-    expect(fetchImpl).toHaveBeenCalledTimes(5);
+    // title is the repo name, a proper noun — never sent to DeepL.
+    expect(result.ja.title).toBe(projectData.title);
+    expect(result.ja.description).toBe('翻訳済み');
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
     expect(await readCacheEntry('demo-cli', cacheDir)).toEqual(result.ja);
   });
 
@@ -223,7 +225,9 @@ describe('buildTranslations', () => {
     await writeCacheEntry('demo-cli', cached, cacheDir);
     const fetchImpl = vi.fn();
     const result = await buildTranslations('demo-cli', projectData, 'fake-key', { fetchImpl, cacheDir });
-    expect(result).toEqual({ ja: cached });
+    // title is normalized to the current source on every cache-hit path,
+    // even though the rest of this cache-hit entry is returned as-is.
+    expect(result).toEqual({ ja: { ...cached, title: projectData.title } });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
@@ -234,7 +238,8 @@ describe('buildTranslations', () => {
       json: async () => ({ translations: [{ text: 'new translation' }] }),
     });
     const result = await buildTranslations('demo-cli', projectData, 'fake-key', { fetchImpl, cacheDir });
-    expect(result.ja.title).toBe('new translation');
+    expect(result.ja.title).toBe(projectData.title);
+    expect(result.ja.description).toBe('new translation');
     expect(fetchImpl).toHaveBeenCalled();
   });
 
@@ -248,7 +253,9 @@ describe('buildTranslations', () => {
     await writeCacheEntry('demo-cli', cached, cacheDir);
     const fetchImpl = vi.fn();
     const result = await buildTranslations('demo-cli', projectData, undefined, { fetchImpl, cacheDir });
-    expect(result).toEqual({ ja: cached });
+    // title is normalized to the current source even on the missing-key
+    // fallback path.
+    expect(result).toEqual({ ja: { ...cached, title: projectData.title } });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
@@ -257,6 +264,18 @@ describe('buildTranslations', () => {
     const result = await buildTranslations('demo-cli', projectData, undefined, { fetchImpl, cacheDir });
     expect(result).toBeUndefined();
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('never sends the title to DeepL, even if DeepL would otherwise be called', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: [{ text: 'こんにちは' }] }),
+    });
+    const result = await buildTranslations('demo-cli', projectData, 'fake-key', { fetchImpl, cacheDir });
+    expect(result.ja.title).toBe('demo-cli');
+    for (const [, init] of fetchImpl.mock.calls) {
+      expect(JSON.parse(init.body).text[0]).not.toBe('demo-cli');
+    }
   });
 
   it('skips only the oversized field when maxChars is set, translating the rest normally', async () => {
@@ -275,11 +294,13 @@ describe('buildTranslations', () => {
       maxChars: 30,
     });
     // readme (50 chars) exceeds maxChars (30) and is skipped — left as the
-    // original English text — while the other, shorter fields (title 8,
-    // description 19, installation 21, contributing 10) still translate.
+    // original English text — while the other, shorter translatable fields
+    // (description 19, installation 21, contributing 10) still translate.
+    // title is never sent to DeepL regardless of length.
     expect(result.ja.sections.readme).toBe('x'.repeat(50));
-    expect(result.ja.title).toBe('翻訳済み');
-    expect(fetchImpl).toHaveBeenCalledTimes(4);
+    expect(result.ja.title).toBe(oversizedProjectData.title);
+    expect(result.ja.description).toBe('翻訳済み');
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
     warnSpy.mockRestore();
   });
 });

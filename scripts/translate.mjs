@@ -132,6 +132,9 @@ export async function writeCacheEntry(repoName, entry, cacheDir = DEFAULT_CACHE_
  * when the EN source is unchanged, translating via DeepL otherwise.
  * Returns the stale cached entry (if any) without calling DeepL when
  * `apiKey` is falsy, or `undefined` if there's neither a key nor a cache.
+ *
+ * `title` is never sent to DeepL — it's the repository name (a proper
+ * noun), so it's carried through unchanged on the Japanese page too.
  */
 export async function buildTranslations(repoName, projectData, apiKey, options = {}) {
   const {
@@ -140,27 +143,32 @@ export async function buildTranslations(repoName, projectData, apiKey, options =
     maxChars = DEFAULT_MAX_CHARS_PER_FIELD,
   } = options;
 
-  const fields = [
-    projectData.title,
+  const translatableFields = [
     projectData.description,
     projectData.sections.readme,
     projectData.sections.installation,
     projectData.sections.contributing,
   ];
-  const sourceHash = hashContent(fields);
+  const sourceHash = hashContent([projectData.title, ...translatableFields]);
   const cached = await readCacheEntry(repoName, cacheDir);
 
+  // title always comes from the current source, never from cache — a
+  // cache entry written before title-passthrough shipped could still
+  // hold a stale machine-translated title even though its source_hash
+  // matches (the hash predates this change too), so it's normalized
+  // here on every cache-hit path rather than relying on cache staleness.
   if (cached?.source_hash === sourceHash) {
-    return { ja: cached };
+    return { ja: { ...cached, title: projectData.title } };
   }
 
   if (!apiKey) {
     console.warn(`  ⚠ DEEPL_API_KEY not set — skipping Japanese translation for ${repoName}`);
-    return cached ? { ja: cached } : undefined;
+    return cached ? { ja: { ...cached, title: projectData.title } } : undefined;
   }
 
-  const [title, description, readme, installation, contributing] = await Promise.all(
-    fields.map(field => translateText(field, apiKey, fetchImpl, maxChars)),
+  const title = projectData.title;
+  const [description, readme, installation, contributing] = await Promise.all(
+    translatableFields.map(field => translateText(field, apiKey, fetchImpl, maxChars)),
   );
 
   const entry = {
